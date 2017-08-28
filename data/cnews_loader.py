@@ -29,7 +29,7 @@ def _build_vocab(filename, vocab_size=5000):
         all_data.extend(content)
 
     counter = Counter(all_data)
-    count_pairs = counter.most_common(vocab_size)
+    count_pairs = counter.most_common(vocab_size - 1)
     words, _ = list(zip(*count_pairs))
     # 添加一个 <PAD> 来将所有文本pad为同一长度
     words = ['<PAD>'] + list(words)
@@ -103,4 +103,10 @@ def batch_iter(data, batch_size=64, num_epochs=5):
 
 
 if __name__ == '__main__':
+
+    if not os.path.exists('data/cnews/vocab_cnews.txt'):
+        _build_vocab('data/cnews/cnews.train.txt')
     x_train, y_train, x_test, y_test, x_val, y_val = preocess_file()
+    print(x_train.shape, y_train.shape)
+    print(x_test.shape, y_test.shape)
+    print(x_val.shape, y_val.shape)
