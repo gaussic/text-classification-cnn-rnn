@@ -10,7 +10,7 @@ import os
 def _read_file(filename):
     """读取一个文件并转换为一行"""
     with open(filename, 'r', encoding='utf-8') as f:
-        return f.read().replace('\n', '').replace('\u3000', '')
+        return f.read().replace('\n', '').replace('\t', '').replace('\u3000', '')
 
 def save_file(dirname):
     """
@@ -46,3 +46,6 @@ def save_file(dirname):
 
 if __name__ == '__main__':
     save_file('data/thucnews')
+    print(len(open('data/cnews/cnews.train.txt', 'r', encoding='utf-8').readlines()))
+    print(len(open('data/cnews/cnews.test.txt', 'r', encoding='utf-8').readlines()))
+    print(len(open('data/cnews/cnews.val.txt', 'r', encoding='utf-8').readlines()))
