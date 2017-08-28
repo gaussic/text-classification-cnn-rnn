@@ -8,16 +8,19 @@
 import os
 
 def _read_file(filename):
+    """读取一个文件并转换为一行"""
     with open(filename, 'r', encoding='utf-8') as f:
         return f.read().replace('\n', '').replace('\u3000', '')
 
-
 def save_file(dirname):
+    """
+    将多个文件整合并存到3个文件中
+    格式:  类别\t内容
+    """
     f_train = open('data/cnews/cnews.train.txt', 'w', encoding='utf-8')
     f_test = open('data/cnews/cnews.test.txt', 'w', encoding='utf-8')
     f_val = open('data/cnews/cnews.val.txt', 'w', encoding='utf-8')
     for category in os.listdir(dirname):   # 分类目录
-
         cat_dir = os.path.join(dirname, category)
         if not os.path.isdir(cat_dir):
             continue
@@ -34,11 +37,12 @@ def save_file(dirname):
                 f_val.write(category + '\t' + content + '\n')
             count += 1
 
-        print('finish:', category)
+        print('Finished:', category)
 
     f_train.close()
     f_test.close()
     f_val.close()
 
 
-# save_file('data/thucnews')
+if __name__ == '__main__':
+    save_file('data/thucnews')
