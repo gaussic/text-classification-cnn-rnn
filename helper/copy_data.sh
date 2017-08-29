@@ -24,5 +24,5 @@ for category in $( ls THUCNews); do
     fi
     let COUNTER=COUNTER+1
   done
-  
+
 done
