@@ -74,16 +74,16 @@ def _file_to_ids(filename, word_to_id, max_length=600):
 
     return x_pad, y_pad
 
-def preocess_file(data_path='data/cnews/'):
+def preocess_file(data_path='data/cnews/', seq_length=600):
     """一次性返回所有数据"""
     _, word_to_id = _read_vocab(os.path.join(data_path,
         'vocab_cnews.txt'))
     x_train, y_train = _file_to_ids(os.path.join(data_path,
-        'cnews.train.txt'), word_to_id)
+        'cnews.train.txt'), word_to_id, seq_length)
     x_test, y_test = _file_to_ids(os.path.join(data_path,
-        'cnews.test.txt'), word_to_id)
+        'cnews.test.txt'), word_to_id, seq_length)
     x_val, y_val = _file_to_ids(os.path.join(data_path,
-        'cnews.val.txt'), word_to_id)
+        'cnews.val.txt'), word_to_id, seq_length)
 
     return x_train, y_train, x_test, y_test, x_val, y_val
 
@@ -102,11 +102,10 @@ def batch_iter(data, batch_size=64, num_epochs=5):
             yield shuffled_data[start_index:end_index]
 
 
-if __name__ == '__main__':
-
-    if not os.path.exists('data/cnews/vocab_cnews.txt'):
-        _build_vocab('data/cnews/cnews.train.txt')
-    x_train, y_train, x_test, y_test, x_val, y_val = preocess_file()
-    print(x_train.shape, y_train.shape)
-    print(x_test.shape, y_test.shape)
-    print(x_val.shape, y_val.shape)
+# if __name__ == '__main__':
+#     if not os.path.exists('data/cnews/vocab_cnews.txt'):
+#         _build_vocab('data/cnews/cnews.train.txt')
+#     x_train, y_train, x_test, y_test, x_val, y_val = preocess_file()
+#     print(x_train.shape, y_train.shape)
+#     print(x_test.shape, y_test.shape)
+#     print(x_val.shape, y_val.shape)
