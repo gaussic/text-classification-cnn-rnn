@@ -7,6 +7,8 @@ import tensorflow as tf
 import time
 from datetime import timedelta
 
+import shutil
+
 class TCNNConfig(object):
     """配置参数"""
 
@@ -115,7 +117,8 @@ def run_epoch():
     tf.summary.scalar("accuracy", tcnn.acc)
 
     tensorboard_dir = 'tensorboard/textcnn'
-    if not os.path.exists(tensorboard_dir):
+    if os.path.exists(tensorboard_dir):
+        shutil.rmtree(tensorboard_dir)
         os.makedirs(tensorboard_dir)
 
     merged_summary = tf.summary.merge_all()
@@ -190,4 +193,3 @@ def run_epoch():
 
 if __name__ == '__main__':
     run_epoch()
-    # run_graph()
