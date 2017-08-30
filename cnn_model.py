@@ -20,7 +20,7 @@ class TCNNConfig(object):
     kernel_size = 5         # 卷积核尺寸
     vocab_size = 5000       # 词汇表达小
 
-    hidden_dim = 128        # 全链接层神经元
+    hidden_dim = 128        # 全连接层神经元
 
     dropout_keep_prob = 0.8 # dropout保留比例
     learning_rate = 1e-3    # 学习率
@@ -50,7 +50,7 @@ class TextCNN(object):
         return _inputs
 
     def cnn(self):
-        """cnnc模型"""
+        """cnn模型"""
         embedding_inputs = self.input_embedding()
 
         with tf.name_scope("cnn"):
