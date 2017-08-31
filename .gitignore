@@ -5,3 +5,4 @@ __pycache__
 cnn_keras.py
 tensorboard
 .idea
+*.pyc
