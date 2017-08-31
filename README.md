@@ -45,6 +45,15 @@ CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sent
 - `preocess_file()`: 一次性处理所有的数据并返回;
 - `batch_iter()`: 为神经网络的训练准备批次的数据。
 
+
+在运行代码前，需要先提取词汇表，执行:
+
+```
+$ python data/cnews_loader.py
+```
+
+会自动进行词汇表的构建与存储。
+
 经过数据预处理，数据的格式如下：
 
 | Data | Shape | Data | Shape |
