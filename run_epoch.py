@@ -114,4 +114,4 @@ def run_epoch(cnn=True):
     session.close()
 
 if __name__ == '__main__':
-    run_epoch(cnn=False)
+    run_epoch(cnn=True)
