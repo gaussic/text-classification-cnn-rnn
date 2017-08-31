@@ -3,6 +3,7 @@
 
 from rnn_model import *
 from cnn_model import *
+from configuration import *
 
 def run_epoch(cnn=True):
     # 载入数据
@@ -113,4 +114,4 @@ def run_epoch(cnn=True):
     session.close()
 
 if __name__ == '__main__':
-    run_epoch()
+    run_epoch(cnn=False)
