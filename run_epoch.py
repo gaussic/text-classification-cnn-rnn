@@ -1,10 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 from rnn_model import *
 from cnn_model import *
 from configuration import *
 from data.cnews_loader import *
+
+
 
 import time
 from datetime import timedelta

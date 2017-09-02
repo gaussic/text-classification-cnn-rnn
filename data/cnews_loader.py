@@ -10,7 +10,7 @@ def _read_file(filename):
     """读取文件数据"""
     contents = []
     labels = []
-    with open(filename, 'r', encoding='utf-8') as f:
+    with open(filename, 'r') as f:
         for line in f.readlines():
             try:
                 label, content = line.strip().split('\t')
@@ -34,13 +34,12 @@ def _build_vocab(filename, vocab_size=5000):
     # 添加一个 <PAD> 来将所有文本pad为同一长度
     words = ['<PAD>'] + list(words)
 
-    open('data/cnews/vocab_cnews.txt',
-        'w', encoding='utf-8').write('\n'.join(words))
+    open('data/cnews/vocab_cnews.txt', 'w').write('\n'.join(words))
 
 def _read_vocab(filename):
     """读取词汇表"""
     words = list(map(lambda line: line.strip(),
-        open(filename, 'r', encoding='utf-8').readlines()))
+        open(filename, 'r').readlines()))
     word_to_id = dict(zip(words, range(len(words))))
 
     return words, word_to_id
