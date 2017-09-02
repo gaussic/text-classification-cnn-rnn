@@ -102,9 +102,9 @@ def batch_iter(data, batch_size=64, num_epochs=5):
             yield shuffled_data[start_index:end_index]
 
 
-# if __name__ == '__main__':
-#     if not os.path.exists('data/cnews/vocab_cnews.txt'):
-#         _build_vocab('data/cnews/cnews.train.txt')
+if __name__ == '__main__':
+    if not os.path.exists('data/cnews/vocab_cnews.txt'):
+        _build_vocab('data/cnews/cnews.train.txt')
 #     x_train, y_train, x_test, y_test, x_val, y_val = preocess_file()
 #     print(x_train.shape, y_train.shape)
 #     print(x_test.shape, y_test.shape)
