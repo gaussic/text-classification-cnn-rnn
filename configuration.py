@@ -20,6 +20,8 @@ class TCNNConfig(object):
     batch_size = 128         # 每批训练大小
     num_epochs = 10          # 总迭代轮次
 
+    print_per_batch = 200    # 每多少轮输出一次结果
+
 
 class TRNNConfig(object):
     """RNN配置参数"""

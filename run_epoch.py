@@ -4,11 +4,18 @@
 from rnn_model import *
 from cnn_model import *
 from configuration import *
+from data.cnews_loader import *
+
+import time
+from datetime import timedelta
 
 def run_epoch(cnn=True):
     # 载入数据
     print('Loading data...')
     start_time = time.time()
+
+    if not os.path.exists('data/cnews/vocab_cnews.txt'):
+        _build_vocab('data/cnews/cnews.train.txt')
 
     x_train, y_train, x_test, y_test, x_val, y_val, words = preocess_file()
 
@@ -82,6 +89,7 @@ def run_epoch(cnn=True):
     # 训练与验证
     print('Training and evaluating...')
     start_time = time.time()
+    print_per_batch = config.print_per_batch
     for i, batch in enumerate(batch_train):
         feed_dict, _ = feed_data(batch)
 
@@ -89,7 +97,7 @@ def run_epoch(cnn=True):
             s = session.run(merged_summary, feed_dict=feed_dict)
             writer.add_summary(s, i)
 
-        if i % 200 == 0:  # 每200次输出在训练集和验证集上的性能
+        if i % print_per_batch == print_per_batch - 1:  # 每200次输出在训练集和验证集上的性能
             loss_train, acc_train = session.run([model.loss, model.acc],
                 feed_dict=feed_dict)
             loss, acc = evaluate(x_val, y_val)
@@ -114,4 +122,4 @@ def run_epoch(cnn=True):
     session.close()
 
 if __name__ == '__main__':
-    run_epoch(cnn=False)
+    run_epoch(cnn=True)

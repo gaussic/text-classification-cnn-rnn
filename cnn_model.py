@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from data.cnews_loader import *
 import tensorflow as tf
 
-import time
-from datetime import timedelta
 
 class TextCNN(object):
     """文本分类，CNN模型"""
