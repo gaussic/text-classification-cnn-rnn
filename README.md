@@ -8,6 +8,11 @@ CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sent
 
 本文是基于TensorFlow在中文数据集上的另一种实现，如果你觉得对你有帮助，欢迎star与交流。
 
+## 环境
+
+- Python 3.5
+- TensorFlow 1.3
+
 ## 数据集
 
 使用THUCNews的一个子集进行训练与测试，数据集请自行到[THUCTC：一个高效的中文文本分类工具包](http://thuctc.thunlp.org/)下载，请遵循数据提供方的开源协议。
