@@ -19,7 +19,7 @@ def run_epoch(cnn=True):
     start_time = time.time()
 
     if not os.path.exists('data/cnews/vocab_cnews.txt'):
-        _build_vocab('data/cnews/cnews.train.txt')
+        build_vocab('data/cnews/cnews.train.txt')
 
     x_train, y_train, x_test, y_test, x_val, y_val, words = preocess_file()
 

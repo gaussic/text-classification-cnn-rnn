@@ -20,7 +20,7 @@ def _read_file(filename):
                 pass
     return contents, labels
 
-def _build_vocab(filename, vocab_size=5000):
+def build_vocab(filename, vocab_size=5000):
     """根据训练集构建词汇表，存储"""
     data, _ = _read_file(filename)
 
