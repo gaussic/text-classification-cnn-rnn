@@ -82,6 +82,7 @@ def run_epoch(cnn=True):
         cnt = 0
         for batch in batch_eval:
             feed_dict, cur_batch_len = feed_data(batch)
+            feed_dict[model.keep_prob] = 1.0
             loss, acc = session.run([model.loss, model.acc],
                 feed_dict=feed_dict)
             total_loss += loss * cur_batch_len
@@ -96,6 +97,7 @@ def run_epoch(cnn=True):
     print_per_batch = config.print_per_batch
     for i, batch in enumerate(batch_train):
         feed_dict, _ = feed_data(batch)
+        feed_dict[model.keep_prob] = config.dropout_keep_prob
 
         if i % 5 == 0:  # 每5次将训练结果写入tensorboard scalar
             s = session.run(merged_summary, feed_dict=feed_dict)
