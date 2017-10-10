@@ -13,6 +13,7 @@ class TextRNN(object):
             [None, self.config.seq_length], name='input_x')
         self.input_y = tf.placeholder(tf.float32,
             [None, self.config.num_classes], name='input_y')
+        self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
         self.rnn()
 
@@ -44,7 +45,7 @@ class TextRNN(object):
                 cell = gru_cell()
 
             return tf.contrib.rnn.DropoutWrapper(cell,
-                output_keep_prob=self.config.dropout_keep_prob)
+                output_keep_prob=self.keep_prob)
 
         embedding_inputs = self.input_embedding()
 
@@ -60,8 +61,7 @@ class TextRNN(object):
         with tf.name_scope("score"):
             # 全连接层，后面接dropout以及relu激活
             fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
-            fc = tf.contrib.layers.dropout(fc,
-                self.config.dropout_keep_prob)
+            fc = tf.contrib.layers.dropout(fc, self.keep_prob)
             fc = tf.nn.relu(fc)
 
             # 分类器

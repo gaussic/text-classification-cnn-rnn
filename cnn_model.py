@@ -41,8 +41,7 @@ class TextCNN(object):
         with tf.name_scope("score"):
             # 全连接层，后面接dropout以及relu激活
             fc = tf.layers.dense(gmp, self.config.hidden_dim, name='fc1')
-            fc = tf.contrib.layers.dropout(fc,
-                self.keep_prob)
+            fc = tf.contrib.layers.dropout(fc, self.keep_prob)
             fc = tf.nn.relu(fc)
 
             # 分类器

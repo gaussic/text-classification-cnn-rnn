@@ -173,35 +173,36 @@ def cnn(self):
 
 这一部分详见代码，具体不在此叙述。
 
-在设定迭代轮次为10的时候，测试集达到了96.67%的准确率，可见效果还是很理想的。
+在设定迭代轮次为10的时候，测试集达到了96.64%的准确率，可见效果还是很理想的。
 
 ```
 Loading data...
-Time usage: 0:00:16
-Constructing Model...
+Using CNN model...
+Time usage: 0:00:19
+Constructing TensorFlow Graph...
+Generating batch...
 Training and evaluating...
-Iter:      1, Train Loss:    2.3, Train Acc:  10.16%, Val Loss:    2.3, Val Acc:  10.54%, Time: 0:00:01
-Iter:    201, Train Loss:   0.24, Train Acc:  91.41%, Val Loss:   0.43, Val Acc:  87.94%, Time: 0:00:10
-Iter:    401, Train Loss:  0.075, Train Acc:  96.88%, Val Loss:   0.29, Val Acc:  91.54%, Time: 0:00:20
-Iter:    601, Train Loss:    0.1, Train Acc:  96.88%, Val Loss:   0.26, Val Acc:  92.32%, Time: 0:00:29
-Iter:    801, Train Loss:   0.13, Train Acc:  92.97%, Val Loss:   0.26, Val Acc:  92.82%, Time: 0:00:38
-Iter:   1001, Train Loss:  0.098, Train Acc:  95.31%, Val Loss:   0.22, Val Acc:  93.36%, Time: 0:00:47
-Iter:   1201, Train Loss:  0.025, Train Acc:  98.44%, Val Loss:   0.21, Val Acc:  93.42%, Time: 0:00:56
-Iter:   1401, Train Loss: 0.0046, Train Acc: 100.00%, Val Loss:   0.18, Val Acc:  94.60%, Time: 0:01:05
-Iter:   1601, Train Loss:  0.031, Train Acc:  99.22%, Val Loss:   0.19, Val Acc:  94.68%, Time: 0:01:14
-Iter:   1801, Train Loss:  0.018, Train Acc:  99.22%, Val Loss:    0.2, Val Acc:  94.30%, Time: 0:01:23
-Iter:   2001, Train Loss: 0.0069, Train Acc: 100.00%, Val Loss:   0.21, Val Acc:  94.10%, Time: 0:01:33
-Iter:   2201, Train Loss: 0.0035, Train Acc: 100.00%, Val Loss:   0.21, Val Acc:  94.70%, Time: 0:01:42
-Iter:   2401, Train Loss: 0.0079, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  93.86%, Time: 0:01:51
-Iter:   2601, Train Loss: 0.0034, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.46%, Time: 0:02:00
-Iter:   2801, Train Loss: 0.00073, Train Acc: 100.00%, Val Loss:   0.24, Val Acc:  93.76%, Time: 0:02:09
-Iter:   3001, Train Loss: 0.0026, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  94.22%, Time: 0:02:18
-Iter:   3201, Train Loss: 0.0012, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.68%, Time: 0:02:27
-Iter:   3401, Train Loss: 0.0025, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.52%, Time: 0:02:36
-Iter:   3601, Train Loss: 0.0016, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  94.92%, Time: 0:02:45
-Iter:   3801, Train Loss: 0.0052, Train Acc: 100.00%, Val Loss:   0.31, Val Acc:  93.30%, Time: 0:02:54
+Iter:    200, Train Loss:   0.19, Train Acc:  95.31%, Val Loss:   0.39, Val Acc:  88.80%, Time: 0:00:11
+Iter:    400, Train Loss:   0.21, Train Acc:  93.75%, Val Loss:   0.24, Val Acc:  93.08%, Time: 0:00:22
+Iter:    600, Train Loss:  0.092, Train Acc:  97.66%, Val Loss:   0.21, Val Acc:  94.26%, Time: 0:00:33
+Iter:    800, Train Loss:  0.079, Train Acc:  98.44%, Val Loss:    0.2, Val Acc:  94.64%, Time: 0:00:43
+Iter:   1000, Train Loss:   0.19, Train Acc:  94.53%, Val Loss:   0.24, Val Acc:  92.82%, Time: 0:00:54
+Iter:   1200, Train Loss:   0.12, Train Acc:  96.09%, Val Loss:   0.18, Val Acc:  94.72%, Time: 0:01:04
+Iter:   1400, Train Loss:  0.062, Train Acc:  98.44%, Val Loss:   0.22, Val Acc:  92.92%, Time: 0:01:15
+Iter:   1600, Train Loss:  0.008, Train Acc: 100.00%, Val Loss:   0.19, Val Acc:  94.32%, Time: 0:01:25
+Iter:   1800, Train Loss:  0.011, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  93.34%, Time: 0:01:35
+Iter:   2000, Train Loss:  0.014, Train Acc:  99.22%, Val Loss:   0.22, Val Acc:  93.34%, Time: 0:01:46
+Iter:   2200, Train Loss:  0.015, Train Acc:  99.22%, Val Loss:   0.21, Val Acc:  94.20%, Time: 0:01:56
+Iter:   2400, Train Loss: 0.0035, Train Acc: 100.00%, Val Loss:   0.18, Val Acc:  94.84%, Time: 0:02:06
+Iter:   2600, Train Loss: 0.0018, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  93.78%, Time: 0:02:16
+Iter:   2800, Train Loss: 0.0019, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  93.94%, Time: 0:02:27
+Iter:   3000, Train Loss: 0.0014, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  93.68%, Time: 0:02:37
+Iter:   3200, Train Loss: 0.0065, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.50%, Time: 0:02:47
+Iter:   3400, Train Loss: 0.0022, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.94%, Time: 0:02:58
+Iter:   3600, Train Loss: 0.0084, Train Acc:  99.22%, Val Loss:   0.31, Val Acc:  92.44%, Time: 0:03:08
+Iter:   3800, Train Loss: 0.0048, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.62%, Time: 0:03:18
 Evaluating on test set...
-Test Loss:   0.15, Test Acc:  96.67%
+Test Loss:   0.14, Test Acc:  96.64%
 ```
 
 准确率和误差如图所示：
