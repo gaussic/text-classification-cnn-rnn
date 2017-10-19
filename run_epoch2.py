@@ -16,6 +16,27 @@ def get_time_dif(start_time):
     time_dif = end_time - start_time
     return timedelta(seconds=int(round(time_dif)))
 
+def construct_model(vocab_size, cnn=True, training=True):
+    tensorboard_dir = ''
+    if cnn:
+        print('Using CNN model...')
+        config = TCNNConfig()
+        config.vocab_size = vocab_size
+        model = TextCNN(config)
+        save_dir = 'checkpoints/textcnn'
+        if training:
+            tensorboard_dir = 'tensorboard/textcnn'
+    else:
+        print('Using RNN model...')
+        config = TRNNConfig()
+        config.vocab_size = len(words)
+        model = TextRNN(config)
+        save_dir = 'checkpoints/textrnn'
+        if training:
+            tensorboard_dir = 'tensorboard/textrnn'
+
+    return model, save_dir, tensorboard_dir
+
 def run_epoch(cnn=True):
     # 载入数据
     print('Loading data...')
@@ -26,20 +47,7 @@ def run_epoch(cnn=True):
 
     x_train, y_train, x_test, y_test, x_val, y_val, words = preocess_file()
 
-    if cnn:
-        print('Using CNN model...')
-        config = TCNNConfig()
-        config.vocab_size = len(words)
-        model = TextCNN(config)
-        tensorboard_dir = 'tensorboard/textcnn'
-        save_dir = 'checkpoints/textcnn'
-    else:
-        print('Using RNN model...')
-        config = TRNNConfig()
-        config.vocab_size = len(words)
-        model = TextRNN(config)
-        tensorboard_dir = 'tensorboard/textrnn'
-        save_dir = 'checkpoints/textrnn'
+    model, save_dir, tensorboard_dir = construct_model(len(words))
 
     time_dif = get_time_dif(start_time)
     print('Time usage:', time_dif)
@@ -141,5 +149,44 @@ def run_epoch(cnn=True):
 
     session.close()
 
+def test_model(cnn=True):
+    print('Loading data...')
+    start_time = time.time()
+    x_test, y_test, words = process_test_file()
+    batch_test = batch_iter(list(zip(x_test, y_test)), 128, 1)
+
+    model, save_dir, _ = construct_model(len(words), cnn=cnn, training=False)
+
+    session = tf.Session()
+    session.run(tf.global_variables_initializer())
+
+    saver = tf.train.Saver()
+    save_path = os.path.join(save_dir, 'best_validation')
+    saver.restore(sess=session, save_path=save_path)
+
+    total_loss = 0.0
+    total_acc = 0.0
+    for batch in batch_test:
+        x_batch, y_batch = zip(*batch)
+        feed_dict = {
+            model.input_x: x_batch,
+            model.input_y: y_batch,
+            model.keep_prob: 1.0
+        }
+        loss, acc = session.run([model.loss, model.acc], feed_dict=feed_dict)
+        total_loss += loss * len(x_batch)
+        total_acc += acc * len(x_batch)
+
+    loss_test = total_loss / len(x_test)
+    acc_test = total_acc / len(x_test)
+
+    msg = 'Test Loss: {0:>6.2}, Test Acc: {1:>7.2%}'
+    print(msg.format(loss_test, acc_test))
+
+    time_dif = get_time_dif(start_time)
+    print('Time usage:', time_dif)
+
+
 if __name__ == '__main__':
-    run_epoch(cnn=True)
+    # run_epoch(cnn=True)
+    test_model()

@@ -76,8 +76,7 @@ def _file_to_ids(filename, word_to_id, max_length=600):
 
 def preocess_file(data_path='data/cnews/', seq_length=600):
     """一次性返回所有数据"""
-    words, word_to_id = _read_vocab(os.path.join(data_path,
-        'vocab_cnews.txt'))
+    words, word_to_id = _read_vocab(os.path.join(data_path, 'vocab_cnews.txt'))
     x_train, y_train = _file_to_ids(os.path.join(data_path,
         'cnews.train.txt'), word_to_id, seq_length)
     x_test, y_test = _file_to_ids(os.path.join(data_path,
@@ -86,6 +85,13 @@ def preocess_file(data_path='data/cnews/', seq_length=600):
         'cnews.val.txt'), word_to_id, seq_length)
 
     return x_train, y_train, x_test, y_test, x_val, y_val, words
+
+def process_test_file(data_path='data/cnews/', seq_length=600):
+    """获取测试数据"""
+    words, word_to_id = _read_vocab(os.path.join(data_path, 'vocab_cnews.txt'))
+    test_path = os.path.join(data_path, 'cnews.test.txt')
+    x_test, y_test = _file_to_ids(test_path, word_to_id, seq_length)
+    return x_test, y_test, words
 
 def batch_iter(data, batch_size=64, num_epochs=5):
     """生成批次数据"""
