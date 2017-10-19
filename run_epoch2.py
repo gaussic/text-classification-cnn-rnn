@@ -11,6 +11,11 @@ from data.cnews_loader import *
 import time
 from datetime import timedelta
 
+def get_time_dif(start_time):
+    end_time = time.time()
+    time_dif = end_time - start_time
+    return timedelta(seconds=int(round(time_dif)))
+
 def run_epoch(cnn=True):
     # 载入数据
     print('Loading data...')
@@ -36,9 +41,7 @@ def run_epoch(cnn=True):
         tensorboard_dir = 'tensorboard/textrnn'
         save_dir = 'checkpoints/textrnn'
 
-    end_time = time.time()
-    time_dif = end_time - start_time
-    time_dif = timedelta(seconds=int(round(time_dif)))
+    time_dif = get_time_dif(start_time)
     print('Time usage:', time_dif)
 
     # 配置模型保存路径
@@ -54,18 +57,13 @@ def run_epoch(cnn=True):
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
-    merged_summary = tf.summary.merge_all()
-    writer = tf.summary.FileWriter(tensorboard_dir)
-    writer.add_graph(session.graph)
-
-    # 生成批次数据
-    print('Generating batch...')
-    batch_train = batch_iter(list(zip(x_train, y_train)),
-        config.batch_size, config.num_epochs)
-
     print('Constructing TensorFlow Graph...')
     session = tf.Session()
     session.run(tf.global_variables_initializer())
+
+    merged_summary = tf.summary.merge_all()
+    writer = tf.summary.FileWriter(tensorboard_dir)
+    writer.add_graph(session.graph)
 
     def feed_data(batch):
         """准备需要喂入模型的数据"""
@@ -77,30 +75,33 @@ def run_epoch(cnn=True):
         return feed_dict, len(x_batch)
 
     def evaluate(x_, y_):
-        """
-        模型评估
-        一次运行所有的数据会OOM，所以需要分批和汇总
-        """
+        """模型评估，一次运行所有的数据会OOM，所以需要分批和汇总"""
         batch_eval = batch_iter(list(zip(x_, y_)), 128, 1)
 
         total_loss = 0.0
         total_acc = 0.0
-        cnt = 0
         for batch in batch_eval:
             feed_dict, cur_batch_len = feed_data(batch)
             feed_dict[model.keep_prob] = 1.0
-            loss, acc = session.run([model.loss, model.acc],
-                feed_dict=feed_dict)
+            loss, acc = session.run([model.loss, model.acc], feed_dict=feed_dict)
             total_loss += loss * cur_batch_len
             total_acc += acc * cur_batch_len
-            cnt += cur_batch_len
 
-        return total_loss / cnt, total_acc / cnt
+        return total_loss / len(x_), total_acc / len(x_)
 
     # 训练与验证
     print('Training and evaluating...')
     start_time = time.time()
     print_per_batch = config.print_per_batch
+    best_acc_val = 0.0
+    last_improved = 0
+    require_improvement = 100
+
+    # 生成批次数据
+    print('Generating training batch...')
+    batch_train = batch_iter(list(zip(x_train, y_train)),
+        config.batch_size, config.num_epochs)
+
     for i, batch in enumerate(batch_train):
         feed_dict, _ = feed_data(batch)
         feed_dict[model.keep_prob] = config.dropout_keep_prob
@@ -110,18 +111,25 @@ def run_epoch(cnn=True):
             writer.add_summary(s, i)
 
         if i % print_per_batch == print_per_batch - 1:  # 每200次输出在训练集和验证集上的性能
-            loss_train, acc_train = session.run([model.loss, model.acc],
-                feed_dict=feed_dict)
-            loss, acc = evaluate(x_val, y_val)
+            loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
+            loss_val, acc_val = evaluate(x_val, y_val)
 
-            # 时间
-            end_time = time.time()
-            time_dif = end_time - start_time
-            time_dif = timedelta(seconds=int(round(time_dif)))
+            if acc_val > best_acc_val:
+                best_acc_val = acc_val
+                last_improved = i
+                saver.save(sess=session, save_path=save_path)
+                improved_str = '*'
+            else:
+                improved_str = ''
 
+            time_dif = get_time_dif(start_time)
             msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%},'\
-                + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5}'
-            print(msg.format(i + 1, loss_train, acc_train, loss, acc, time_dif))
+                + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
+            print(msg.format(i + 1, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
+
+            if i - last_improved > require_improvement:
+                print("长时间未提升, 停止优化。")
+                break  # 跳出循环
 
         session.run(model.optim, feed_dict=feed_dict)  # 运行优化
 
