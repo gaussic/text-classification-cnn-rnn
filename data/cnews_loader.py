@@ -11,7 +11,7 @@ def _read_file(filename):
     contents = []
     labels = []
     with open(filename, 'r', encoding='utf-8') as f:
-        for line in f.readlines():
+        for line in f:
             try:
                 label, content = line.strip().split('\t')
                 contents.append(list(content))
@@ -20,12 +20,12 @@ def _read_file(filename):
                 pass
     return contents, labels
 
-def build_vocab(filename, vocab_size=5000):
+def build_vocab(train_dir, vocab_dir, vocab_size=5000):
     """根据训练集构建词汇表，存储"""
-    data, _ = _read_file(filename)
+    data_train, _ = _read_file(train_dir)
 
     all_data = []
-    for content in data:
+    for content in data_train:
         all_data.extend(content)
 
     counter = Counter(all_data)
@@ -34,13 +34,20 @@ def build_vocab(filename, vocab_size=5000):
     # 添加一个 <PAD> 来将所有文本pad为同一长度
     words = ['<PAD>'] + list(words)
 
-    open('data/cnews/vocab_cnews.txt', 'w',
-        encoding='utf-8').write('\n'.join(words))
+    open(vocab_dir, 'w', encoding='utf-8').write('\n'.join(words))
 
 def _read_vocab(filename):
     """读取词汇表"""
     words = list(map(lambda line: line.strip(),
         open(filename, 'r', encoding='utf-8').readlines()))
+    word_to_id = dict(zip(words, range(len(words))))
+
+    return words, word_to_id
+
+def read_vocab():
+    """读取词汇表"""
+    vocab_file = open('data/cnews/vocab_cnews.txt', 'r', encoding='utf-8').readlines()
+    words = list(map(lambda line: line.strip(),vocab_file))
     word_to_id = dict(zip(words, range(len(words))))
 
     return words, word_to_id
@@ -74,7 +81,23 @@ def _file_to_ids(filename, word_to_id, max_length=600):
 
     return x_pad, y_pad
 
-def preocess_file(data_path='data/cnews/', seq_length=600):
+def process_file(filename, word_to_id, cat_to_id, max_length=600):
+    """将文件转换为id表示"""
+    contents, labels = _read_file(filename)
+
+    data_id = []
+    label_id = []
+    for i in range(len(contents)):
+        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])
+        label_id.append(cat_to_id[labels[i]])
+
+    # 使用keras提供的pad_sequences来将文本pad为固定长度
+    x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
+    y_pad = kr.utils.to_categorical(label_id)  # 将标签转换为one-hot表示
+
+    return x_pad, y_pad
+
+def preocess_file2(data_path='data/cnews/', seq_length=600):
     """一次性返回所有数据"""
     words, word_to_id = _read_vocab(os.path.join(data_path, 'vocab_cnews.txt'))
     x_train, y_train = _file_to_ids(os.path.join(data_path,
@@ -93,19 +116,19 @@ def process_test_file(data_path='data/cnews/', seq_length=600):
     x_test, y_test = _file_to_ids(test_path, word_to_id, seq_length)
     return x_test, y_test, words
 
-def batch_iter(data, batch_size=64, num_epochs=5):
+def batch_iter(x, y, batch_size=64):
     """生成批次数据"""
-    data = np.array(data)
-    data_size = len(data)
-    num_batchs_per_epoch = int((data_size - 1) / batch_size) + 1
-    for epoch in range(num_epochs):
-        indices = np.random.permutation(np.arange(data_size))
-        shuffled_data = data[indices]
+    data_len = len(x)
+    num_batch = int((data_len - 1) / batch_size) + 1
 
-        for batch_num in range(num_batchs_per_epoch):
-            start_index = batch_num * batch_size
-            end_index = min((batch_num + 1) * batch_size, data_size)
-            yield shuffled_data[start_index:end_index]
+    indices = np.random.permutation(np.arange(data_len))
+    x_shuffle = x[indices]
+    y_shuffle = y[indices]
+
+    for i in range(num_batch):
+        start_id = i * batch_size
+        end_id = min((i + 1) * batch_size, data_len)
+        yield x_shuffle[start_id:end_id], y_shuffle[start_id:end_id]
 
 
 if __name__ == '__main__':

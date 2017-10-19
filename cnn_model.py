@@ -22,6 +22,7 @@ class TCNNConfig(object):
     num_epochs = 10         # 总迭代轮次
 
     print_per_batch = 50    # 每多少轮输出一次结果
+    save_per_batch = 5      # 每多少轮存入tensorboard
 
 
 class TextCNN(object):
@@ -38,7 +39,6 @@ class TextCNN(object):
 
     def cnn(self):
         """CNN模型"""
-
         # 词向量映射
         with tf.device('/cpu:0'):
             embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
@@ -60,18 +60,14 @@ class TextCNN(object):
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)  # 预测类别
 
-        with tf.name_scope("loss"):
+        with tf.name_scope("optimize"):
             # 损失函数，交叉熵
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
             self.loss = tf.reduce_mean(cross_entropy)
-
-        with tf.name_scope("optimize"):
             # 优化器
-            optimizer = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate)
-            self.optim = optimizer.minimize(self.loss)
+            self.optim = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate).minimize(self.loss)
 
         with tf.name_scope("accuracy"):
             # 准确率
-            correct_pred = tf.equal(tf.argmax(self.input_y, 1),
-                tf.argmax(self.pred_y, 1))
+            correct_pred = tf.equal(tf.argmax(self.input_y, 1), self.y_pred_cls)
             self.acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
