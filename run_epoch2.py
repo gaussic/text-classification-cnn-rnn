@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 from rnn_model import *
 from cnn_model import *
 from configuration import *
@@ -13,11 +11,13 @@ import time
 from datetime import timedelta
 
 def get_time_dif(start_time):
+    """获取已使用时间"""
     end_time = time.time()
     time_dif = end_time - start_time
     return timedelta(seconds=int(round(time_dif)))
 
 def construct_model(vocab_size, cnn=True, training=True):
+    """构建模型"""
     tensorboard_dir = ''
     if cnn:
         print('Using CNN model...')
@@ -30,7 +30,7 @@ def construct_model(vocab_size, cnn=True, training=True):
     else:
         print('Using RNN model...')
         config = TRNNConfig()
-        config.vocab_size = len(words)
+        config.vocab_size = vocab_size
         model = TextRNN(config)
         save_dir = 'checkpoints/textrnn'
         if training:

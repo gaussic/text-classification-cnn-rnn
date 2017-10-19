@@ -16,9 +16,11 @@ def run_epoch(cnn=True):
     print('Loading data...')
     start_time = time.time()
 
+    # 如果不存在词汇表，要先根据训练集构建词汇表
     if not os.path.exists('data/cnews/vocab_cnews.txt'):
         build_vocab('data/cnews/cnews.train.txt')
 
+    # 训练过程中需要进行评测，因此一次性读取所有数据
     x_train, y_train, x_test, y_test, x_val, y_val, words = preocess_file()
 
     if cnn:
