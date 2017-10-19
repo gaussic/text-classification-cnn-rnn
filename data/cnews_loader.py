@@ -45,7 +45,7 @@ def _read_vocab(filename):
 
     return words, word_to_id
 
-def _read_category():
+def read_category():
     """读取分类目录，固定"""
     categories = ['体育', '财经', '房产', '家居',
         '教育', '科技', '时尚', '时政', '游戏', '娱乐']
@@ -59,7 +59,7 @@ def to_words(content, words):
 
 def _file_to_ids(filename, word_to_id, max_length=600):
     """将文件转换为id表示"""
-    _, cat_to_id = _read_category()
+    _, cat_to_id = read_category()
     contents, labels = _read_file(filename)
 
     data_id = []

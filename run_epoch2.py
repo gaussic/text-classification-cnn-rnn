@@ -7,6 +7,7 @@ from rnn_model import *
 from cnn_model import *
 from configuration import *
 from data.cnews_loader import *
+from sklearn import metrics
 
 import time
 from datetime import timedelta
@@ -186,7 +187,46 @@ def test_model(cnn=True):
     time_dif = get_time_dif(start_time)
     print('Time usage:', time_dif)
 
+def model_score(cnn=True):
+    print('Loading data...')
+    start_time = time.time()
+    x_test, y_test, words = process_test_file()
+    batch_test = batch_iter(list(zip(x_test, y_test)), 128, 1)
+    y_pred_cls = np.zeros(shape=len(x_test), dtype=np.int32)
+    y_test_cls = np.zeros(shape=len(x_test), dtype=np.int32)
+
+    model, save_dir, _ = construct_model(len(words), cnn=cnn, training=False)
+
+    session = tf.Session()
+    session.run(tf.global_variables_initializer())
+
+    saver = tf.train.Saver()
+    save_path = os.path.join(save_dir, 'best_validation')
+    saver.restore(sess=session, save_path=save_path)
+
+    for i, batch in enumerate(batch_test):
+        x_batch, y_batch = zip(*batch)
+        batch_len = len(x_batch)
+        feed_dict = {
+            model.input_x: x_batch,
+            model.keep_prob: 1.0
+        }
+        y_pred_batch = session.run(model.pred_y, feed_dict=feed_dict)
+        y_pred_cls[i*batch_len:(i+1)*batch_len] = np.argmax(y_pred_batch, 1)
+        y_test_cls[i*batch_len:(i+1)*batch_len] = np.argmax(y_batch, 1)
+
+    print("Precision, Recall and F1-Score")
+    categories, _ = read_category()
+    print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
+
+    print("Confusion Matrix")
+    cm = metrics.confusion_matrix(y_test_cls, y_pred_cls)
+    print(cm)
+
+    time_dif = get_time_dif(start_time)
+    print('Time usage:', time_dif)
 
 if __name__ == '__main__':
     # run_epoch(cnn=True)
-    test_model()
+    # test_model()
+    model_score()
