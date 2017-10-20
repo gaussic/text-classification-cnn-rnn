@@ -1,17 +1,21 @@
-# Text Classification with CNN
+# Text Classification with CNN and RNN
 
-使用卷积神经网络进行文本分类
+使用卷积神经网络以及循环神经网络进行中文文本分类
 
 CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sentence Classification](https://arxiv.org/abs/1408.5882)
 
 还可以去读dennybritz大牛的博客：[Implementing a CNN for Text Classification in TensorFlow](http://www.wildml.com/2015/12/implementing-a-cnn-for-text-classification-in-tensorflow/)
 
-本文是基于TensorFlow在中文数据集上的另一种实现，如果你觉得对你有帮助，欢迎star与交流。
+以及字符级CNN的论文：[Character-level Convolutional Networks for Text Classification](https://arxiv.org/abs/1509.01626)
+
+本文是基于TensorFlow在中文数据集上的简化实现，使用了字符级CNN和RNN对中文文本进行分类，达到了较好的效果。
 
 ## 环境
 
 - Python 3.5
 - TensorFlow 1.3
+- numpy
+- scikit-learn
 
 ## 数据集
 
@@ -41,15 +45,13 @@ CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sent
 
 `data/cnews_loader.py`为数据的预处理文件。
 
-- `read_file()`：读取上一部分生成的数据文件，将内容和标签分开返回;
-- `_build_vocab()`: 构建词汇表，这里不需要对文档进行分词，单字的效果已经很好，这一函数会将词汇表存储下来，避免每一次重复处理;
-- `_read_vocab()`: 读取上一步存储的词汇表，转换为`{词：id}`表示;
-- `_read_category()`: 将分类目录固定，转换为`{类别: id}`表示;
-- `_file_to_ids()`: 基于上面定义的函数，将数据集从文字转换为id表示;
+- `read_file()`: 读取文件数据;
+- `build_vocab()`: 构建词汇表，使用字符级的表示，这一函数会将词汇表存储下来，避免每一次重复处理;
+- `read_vocab()`: 读取上一步存储的词汇表，转换为`{词：id}`表示;
+- `read_category()`: 将分类目录固定，转换为`{类别: id}`表示;
 - `to_words()`: 将一条由id表示的数据重新转换为文字;
-- `preocess_file()`: 一次性处理所有的数据并返回;
-- `batch_iter()`: 为神经网络的训练准备批次的数据。
-
+- `preocess_file()`: 将数据集从文字转换为固定长度的id序列表示;
+- `batch_iter()`: 为神经网络的训练准备经过shuffle的批次的数据。
 
 经过数据预处理，数据的格式如下：
 
@@ -59,156 +61,128 @@ CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sent
 | x_val | [5000, 600] | y_val | [5000, 10] |
 | x_test | [10000, 600] | y_test | [10000, 10] |
 
-## 配置项
+## CNN卷积神经网络
 
-可配置的参数如下所示，在`model.py`的上部。
+### 配置项
 
-```
+CNN可配置的参数如下所示，在`cnn_model.py`中。
+
+```python
 class TCNNConfig(object):
-    """配置参数"""
+    """CNN配置参数"""
 
-    # 模型参数
     embedding_dim = 64      # 词向量维度
     seq_length = 600        # 序列长度
     num_classes = 10        # 类别数
-    num_filters = 256       # 卷积核数目
+    num_filters = 128        # 卷积核数目
     kernel_size = 5         # 卷积核尺寸
     vocab_size = 5000       # 词汇表达小
 
-    hidden_dim = 128        # 全链接层神经元
+    hidden_dim = 128        # 全连接层神经元
 
-    dropout_keep_prob = 0.8 # dropout保留比例
+    dropout_keep_prob = 0.5 # dropout保留比例
     learning_rate = 1e-3    # 学习率
 
-    batch_size = 128         # 每批训练大小
-    num_epochs = 10          # 总迭代轮次
+    batch_size = 64         # 每批训练大小
+    num_epochs = 10         # 总迭代轮次
+
+    print_per_batch = 100    # 每多少轮输出一次结果
+    save_per_batch = 10      # 每多少轮存入tensorboard
 ```
 
-## 模型
+### CNN模型
 
-原始的模型如下图所示：
+具体参看`cnn_model.py`的实现。
 
-![raw](images/raw_cnn_architecture.png)
+大致结构如下：
 
-可看到它使用了多个不同宽度的卷积核然后将它们做了一个max over time pooling转换为一个长的特征向量，再使用softmax进行分类。
+### 训练与验证
 
-实验发现，简单的cnn也能达到较好的效果。
+运行 `python run_cnn.py train`，可以开始训练。
 
-因此在这里使用的是简化版的结构，具体参看`model.py`。
-
-首先在初始化时，需要定义两个`placeholder`作为输入输出占位符。
-
-```
-def __init__(self, config):
-      self.config = config
-
-      self.input_x = tf.placeholder(tf.int32,
-          [None, self.config.seq_length], name='input_x')
-      self.input_y = tf.placeholder(tf.float32,
-          [None, self.config.num_classes], name='input_y')
-
-      self.cnn()
-```
-
-词嵌入将词的id映射为词向量表示，embedding层会在训练时更新。
-
-```
-def input_embedding(self):
-    """词嵌入"""
-    with tf.device('/cpu:0'):
-        embedding = tf.get_variable('embedding',
-            [self.config.vocab_size, self.config.embedding_dim])
-        _inputs = tf.nn.embedding_lookup(embedding, self.input_x)
-    return _inputs
-```
-
-cnn模型中，首先定义一个一维卷积层，再使用`tf.reduce_max`实现global max pooling。再接两个dense层分别做映射和分类。使用交叉熵损失函数，Adam优化器，并且计算准确率。这里有许多参数可调，大部分可以通过调整TCNNConfig类即可。
-
-```
-def cnn(self):
-      """cnnc模型"""
-      embedding_inputs = self.input_embedding()
-
-      with tf.name_scope("cnn"):
-          # cnn 与全局最大池化
-          conv = tf.layers.conv1d(embedding_inputs,
-              self.config.num_filters,
-              self.config.kernel_size, name='conv')
-
-          # global max pooling
-          gmp = tf.reduce_max(conv, reduction_indices=[1], name='gmp')
-
-      with tf.name_scope("score"):
-          # 全连接层，后面接dropout以及relu激活
-          fc = tf.layers.dense(gmp, self.config.hidden_dim, name='fc1')
-          fc = tf.contrib.layers.dropout(fc,
-              self.config.dropout_keep_prob)
-          fc = tf.nn.relu(fc)
-
-          # 分类器
-          self.logits = tf.layers.dense(fc, self.config.num_classes,
-              name='fc2')
-          self.pred_y = tf.nn.softmax(self.logits)
-
-      with tf.name_scope("loss"):
-          # 损失函数，交叉熵
-          cross_entropy = tf.nn.softmax_cross_entropy_with_logits(
-              logits=self.logits, labels=self.input_y)
-          self.loss = tf.reduce_mean(cross_entropy)
-
-      with tf.name_scope("optimize"):
-          # 优化器
-          optimizer = tf.train.AdamOptimizer(
-              learning_rate=self.config.learning_rate)
-          self.optim = optimizer.minimize(self.loss)
-
-      with tf.name_scope("accuracy"):
-          # 准确率
-          correct_pred = tf.equal(tf.argmax(self.input_y, 1),
-              tf.argmax(self.pred_y, 1))
-          self.acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
-```
-
-## 训练与验证
-
-这一部分详见代码，具体不在此叙述。
+> 若之前进行过训练，请把tensorboard/textcnn删除，避免TensorBoard多次训练结果重叠。
 
 在设定迭代轮次为10的时候，测试集达到了96.64%的准确率，可见效果还是很理想的。
 
 ```
-Loading data...
-Using CNN model...
-Time usage: 0:00:19
-Constructing TensorFlow Graph...
-Generating batch...
+Configuring CNN model...
+Configuring TensorBoard and Saver...
+Loading training and validation data...
+Time usage: 0:00:14
 Training and evaluating...
-Iter:    200, Train Loss:   0.19, Train Acc:  95.31%, Val Loss:   0.39, Val Acc:  88.80%, Time: 0:00:11
-Iter:    400, Train Loss:   0.21, Train Acc:  93.75%, Val Loss:   0.24, Val Acc:  93.08%, Time: 0:00:22
-Iter:    600, Train Loss:  0.092, Train Acc:  97.66%, Val Loss:   0.21, Val Acc:  94.26%, Time: 0:00:33
-Iter:    800, Train Loss:  0.079, Train Acc:  98.44%, Val Loss:    0.2, Val Acc:  94.64%, Time: 0:00:43
-Iter:   1000, Train Loss:   0.19, Train Acc:  94.53%, Val Loss:   0.24, Val Acc:  92.82%, Time: 0:00:54
-Iter:   1200, Train Loss:   0.12, Train Acc:  96.09%, Val Loss:   0.18, Val Acc:  94.72%, Time: 0:01:04
-Iter:   1400, Train Loss:  0.062, Train Acc:  98.44%, Val Loss:   0.22, Val Acc:  92.92%, Time: 0:01:15
-Iter:   1600, Train Loss:  0.008, Train Acc: 100.00%, Val Loss:   0.19, Val Acc:  94.32%, Time: 0:01:25
-Iter:   1800, Train Loss:  0.011, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  93.34%, Time: 0:01:35
-Iter:   2000, Train Loss:  0.014, Train Acc:  99.22%, Val Loss:   0.22, Val Acc:  93.34%, Time: 0:01:46
-Iter:   2200, Train Loss:  0.015, Train Acc:  99.22%, Val Loss:   0.21, Val Acc:  94.20%, Time: 0:01:56
-Iter:   2400, Train Loss: 0.0035, Train Acc: 100.00%, Val Loss:   0.18, Val Acc:  94.84%, Time: 0:02:06
-Iter:   2600, Train Loss: 0.0018, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  93.78%, Time: 0:02:16
-Iter:   2800, Train Loss: 0.0019, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  93.94%, Time: 0:02:27
-Iter:   3000, Train Loss: 0.0014, Train Acc: 100.00%, Val Loss:   0.23, Val Acc:  93.68%, Time: 0:02:37
-Iter:   3200, Train Loss: 0.0065, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.50%, Time: 0:02:47
-Iter:   3400, Train Loss: 0.0022, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.94%, Time: 0:02:58
-Iter:   3600, Train Loss: 0.0084, Train Acc:  99.22%, Val Loss:   0.31, Val Acc:  92.44%, Time: 0:03:08
-Iter:   3800, Train Loss: 0.0048, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  94.62%, Time: 0:03:18
-Evaluating on test set...
-Test Loss:   0.14, Test Acc:  96.64%
+Epoch: 1
+Iter:      0, Train Loss:    2.3, Train Acc:  10.94%, Val Loss:    2.3, Val Acc:   8.92%, Time: 0:00:01 *
+Iter:    100, Train Loss:   0.88, Train Acc:  73.44%, Val Loss:    1.2, Val Acc:  68.46%, Time: 0:00:04 *
+Iter:    200, Train Loss:   0.38, Train Acc:  92.19%, Val Loss:   0.75, Val Acc:  77.32%, Time: 0:00:07 *
+Iter:    300, Train Loss:   0.22, Train Acc:  92.19%, Val Loss:   0.46, Val Acc:  87.08%, Time: 0:00:09 *
+Iter:    400, Train Loss:   0.24, Train Acc:  90.62%, Val Loss:    0.4, Val Acc:  88.62%, Time: 0:00:12 *
+Iter:    500, Train Loss:   0.16, Train Acc:  96.88%, Val Loss:   0.36, Val Acc:  90.38%, Time: 0:00:15 *
+Iter:    600, Train Loss:  0.084, Train Acc:  96.88%, Val Loss:   0.35, Val Acc:  91.36%, Time: 0:00:17 *
+Iter:    700, Train Loss:   0.21, Train Acc:  93.75%, Val Loss:   0.26, Val Acc:  92.58%, Time: 0:00:20 *
+Epoch: 2
+Iter:    800, Train Loss:   0.07, Train Acc:  98.44%, Val Loss:   0.24, Val Acc:  94.12%, Time: 0:00:23 *
+Iter:    900, Train Loss:  0.092, Train Acc:  96.88%, Val Loss:   0.27, Val Acc:  92.86%, Time: 0:00:25
+Iter:   1000, Train Loss:   0.17, Train Acc:  95.31%, Val Loss:   0.28, Val Acc:  92.82%, Time: 0:00:28
+Iter:   1100, Train Loss:    0.2, Train Acc:  93.75%, Val Loss:   0.23, Val Acc:  93.26%, Time: 0:00:31
+Iter:   1200, Train Loss:  0.081, Train Acc:  98.44%, Val Loss:   0.25, Val Acc:  92.96%, Time: 0:00:33
+Iter:   1300, Train Loss:  0.052, Train Acc: 100.00%, Val Loss:   0.24, Val Acc:  93.58%, Time: 0:00:36
+Iter:   1400, Train Loss:    0.1, Train Acc:  95.31%, Val Loss:   0.22, Val Acc:  94.12%, Time: 0:00:39
+Iter:   1500, Train Loss:   0.12, Train Acc:  98.44%, Val Loss:   0.23, Val Acc:  93.58%, Time: 0:00:41
+Epoch: 3
+Iter:   1600, Train Loss:    0.1, Train Acc:  96.88%, Val Loss:   0.26, Val Acc:  92.34%, Time: 0:00:44
+Iter:   1700, Train Loss:  0.018, Train Acc: 100.00%, Val Loss:   0.22, Val Acc:  93.46%, Time: 0:00:47
+Iter:   1800, Train Loss:  0.036, Train Acc: 100.00%, Val Loss:   0.28, Val Acc:  92.72%, Time: 0:00:50
+No optimization for a long time, auto-stopping...
 ```
+
+在验证集上的最佳效果为94.12%，且只经过了3轮迭代就已经停止。
 
 准确率和误差如图所示：
 
 ![images/acc_loss.png](images/acc_loss.png)
 
+### 测试
+
+运行 `python run_cnn.py test` 在测试集上进行测试。
+
+```
+Configuring CNN model...
+Loading test data...
+Testing...
+Test Loss:   0.14, Test Acc:  96.04%
+Precision, Recall and F1-Score...
+             precision    recall  f1-score   support
+
+         体育       0.99      0.99      0.99      1000
+         财经       0.96      0.99      0.97      1000
+         房产       1.00      1.00      1.00      1000
+         家居       0.95      0.91      0.93      1000
+         教育       0.95      0.89      0.92      1000
+         科技       0.94      0.97      0.95      1000
+         时尚       0.95      0.97      0.96      1000
+         时政       0.94      0.94      0.94      1000
+         游戏       0.97      0.96      0.97      1000
+         娱乐       0.95      0.98      0.97      1000
+
+avg / total       0.96      0.96      0.96     10000
+
+Confusion Matrix...
+[[991   0   0   0   2   1   0   4   1   1]
+ [  0 992   0   0   2   1   0   5   0   0]
+ [  0   1 996   0   1   1   0   0   0   1]
+ [  0  14   0 912   7  15   9  29   3  11]
+ [  2   9   0  12 892  22  18  21  10  14]
+ [  0   0   0  10   1 968   4   3  12   2]
+ [  1   0   0   9   4   4 971   0   2   9]
+ [  1  16   0   4  18  12   1 941   1   6]
+ [  2   4   1   5   4   5  10   1 962   6]
+ [  1   0   1   6   4   3   5   0   1 979]]
+Time usage: 0:00:05
+```
+
+在测试集上的准确率达到了96.04%，且各类的precision, recall和f1-score都超过了0.9。
+
+从混淆矩阵也可以看出分类效果非常优秀。
 
 ## RNN
 

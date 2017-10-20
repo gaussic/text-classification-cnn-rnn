@@ -3,7 +3,6 @@ data/cnews
 data/thucnews
 __pycache__
 cnn_keras.py
-tensorboard
 .idea
 *.pyc
 checkpoints
