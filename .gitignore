@@ -6,3 +6,4 @@ cnn_keras.py
 .idea
 *.pyc
 checkpoints
+tensorboard

@@ -221,7 +221,7 @@ class TRNNConfig(object):
 
 大致结构如下：
 
-![images/cnn_architecture](images/cnn_architecture.png)
+![images/rnn_architecture](images/rnn_architecture.png)
 
 ### 训练与验证
 
