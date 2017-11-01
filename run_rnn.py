@@ -49,9 +49,6 @@ def evaluate(sess, x_, y_):
     return total_loss / data_len, total_acc / data_len
 
 def train():
-    if not os.path.exists(vocab_dir):  # 如果不存在词汇表，重建
-        build_vocab(train_dir, vocab_dir, config.vocab_size)
-
     print("Configuring TensorBoard and Saver...")
     # 配置 Tensorboard，重新训练时，请将tensorboard文件夹删除，不然图会覆盖
     tensorboard_dir = 'tensorboard/textrnn'
@@ -180,6 +177,8 @@ if __name__ == '__main__':
 
     print('Configuring RNN model...')
     config = TRNNConfig()
+    if not os.path.exists(vocab_dir):  # 如果不存在词汇表，重建
+        build_vocab(train_dir, vocab_dir, config.vocab_size)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
