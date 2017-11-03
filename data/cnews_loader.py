@@ -15,8 +15,7 @@ def open_file(filename, mode='r'):
 
 def read_file(filename):
     """读取文件数据"""
-    contents = []
-    labels = []
+    contents, labels = [], []
     with open_file(filename) as f:
         for line in f:
             try:
@@ -66,8 +65,7 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
     """将文件转换为id表示"""
     contents, labels = read_file(filename)
 
-    data_id = []
-    label_id = []
+    data_id, label_id = [], []
     for i in range(len(contents)):
         data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])
         label_id.append(cat_to_id[labels[i]])
