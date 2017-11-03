@@ -6,11 +6,18 @@ import tensorflow.contrib.keras as kr
 import numpy as np
 import os
 
+def open_file(filename, mode='r'):
+    """
+    Commonly used file reader, change this to switch between python2 and python3.
+    mode: 'r' or 'w' for read or write
+    """
+    return open(filename, mode, encoding='utf-8', errors='ignore')
+
 def read_file(filename):
     """读取文件数据"""
     contents = []
     labels = []
-    with open(filename, 'r', encoding='utf-8') as f:
+    with open_file(filename) as f:
         for line in f:
             try:
                 label, content = line.strip().split('\t')
@@ -34,12 +41,11 @@ def build_vocab(train_dir, vocab_dir, vocab_size=5000):
     # 添加一个 <PAD> 来将所有文本pad为同一长度
     words = ['<PAD>'] + list(words)
 
-    open(vocab_dir, 'w', encoding='utf-8').write('\n'.join(words))
+    open_file(vocab_dir, mode='w').write('\n'.join(words) + '\n')
 
 def read_vocab(vocab_dir):
     """读取词汇表"""
-    vocab_file = open(vocab_dir, 'r', encoding='utf-8').readlines()
-    words = list(map(lambda line: line.strip(),vocab_file))
+    words = open_file(vocab_dir).read().strip().split('\n')
     word_to_id = dict(zip(words, range(len(words))))
 
     return words, word_to_id
