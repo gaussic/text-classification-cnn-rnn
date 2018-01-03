@@ -3,6 +3,7 @@
 
 from cnn_model import *
 from data.cnews_loader import *
+import tensorflow.contrib.keras as kr
 
 import time
 from datetime import timedelta
@@ -27,8 +28,8 @@ def predict():
 
     content = "三星ST550以全新的拍摄方式超越了以往任何一款数码相机"
     data = [word_to_id[x] for x in content if x in word_to_id]
-    data = [0]*(config.seq_length - len(data)) + data  # 长度固定为600
-    data = np.array(data).reshape(1, -1)    # batch_size为1
+
+    data = kr.preprocessing.sequence.pad_sequences([data], config.seq_length)
     feed_dict = {
         model.input_x: data,
         model.keep_prob: 1.0
