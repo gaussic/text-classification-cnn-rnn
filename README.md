@@ -10,12 +10,15 @@ CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sent
 
 本文是基于TensorFlow在中文数据集上的简化实现，使用了字符级CNN和RNN对中文文本进行分类，达到了较好的效果。
 
+文中所使用的Conv1D与论文中有些不同，详细参考官方文档：[tf.nn.conv1d](https://www.tensorflow.org/api_docs/python/tf/nn/conv1d)
+
 ## 环境
 
-- Python 3.5
-- TensorFlow 1.3
+- Python 2/3 (感谢[howie.hu](https://github.com/howie6879)调试Python2环境)
+- TensorFlow 1.3以上
 - numpy
 - scikit-learn
+- scipy
 
 ## 数据集
 
