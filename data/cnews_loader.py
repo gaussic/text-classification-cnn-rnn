@@ -1,8 +1,6 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import os
-import sys
+# coding: utf-8
 
+import sys
 from collections import Counter
 
 import numpy as np
@@ -17,7 +15,7 @@ else:
 
 
 def native_word(word, encoding='utf-8'):
-    """如果在oython2下面使用python3训练的模型，可考虑调用此函数转化一下字符编码"""
+    """如果在python2下面使用python3训练的模型，可考虑调用此函数转化一下字符编码"""
     if not is_py3:
         return word.encode(encoding)
     else:
@@ -26,14 +24,14 @@ def native_word(word, encoding='utf-8'):
 
 def native_content(content):
     if not is_py3:
-        return unicode(content)
+        return content.decode('utf-8')
     else:
         return content
 
 
 def open_file(filename, mode='r'):
     """
-    Commonly used file reader, change this to switch between python2 and python3.
+    常用文件操作，可在python2和python3间切换.
     mode: 'r' or 'w' for read or write
     """
     if is_py3:
@@ -64,6 +62,7 @@ def build_vocab(train_dir, vocab_dir, vocab_size=5000):
     all_data = []
     for content in data_train:
         all_data.extend(content)
+
     counter = Counter(all_data)
     count_pairs = counter.most_common(vocab_size - 1)
     words, _ = list(zip(*count_pairs))
@@ -84,8 +83,10 @@ def read_vocab(vocab_dir):
 
 def read_category():
     """读取分类目录，固定"""
-    categories = [u'体育', u'财经', u'房产', u'家居',
-                  u'教育', u'科技', u'时尚', u'时政', u'游戏', u'娱乐']
+    categories = ['体育', '财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐']
+
+    categories = [native_content(x) for x in categories]
+
     cat_to_id = dict(zip(categories, range(len(categories))))
 
     return categories, cat_to_id
@@ -102,8 +103,7 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
 
     data_id, label_id = [], []
     for i in range(len(contents)):
-        data_id.append(
-            [word_to_id[x] for x in contents[i] if x in word_to_id])
+        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])
         label_id.append(cat_to_id[labels[i]])
 
     # 使用keras提供的pad_sequences来将文本pad为固定长度

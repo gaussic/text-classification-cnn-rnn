@@ -1,14 +1,18 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
-from rnn_model import *
-from data.cnews_loader import *
-from sklearn import metrics
+from __future__ import print_function
+
+import os
 import sys
-
 import time
 from datetime import timedelta
 
+import numpy as np
+import tensorflow as tf
+from sklearn import metrics
+
+from rnn_model import TRNNConfig, TextRNN
+from data.cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 base_dir = 'data/cnews'
 train_dir = os.path.join(base_dir, 'cnews.train.txt')
@@ -17,13 +21,15 @@ val_dir = os.path.join(base_dir, 'cnews.val.txt')
 vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
 
 save_dir = 'checkpoints/textrnn'
-save_path = os.path.join(save_dir, 'best_validation')   # 最佳验证结果保存路径
+save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
+
 
 def get_time_dif(start_time):
     """获取已使用时间"""
     end_time = time.time()
     time_dif = end_time - start_time
     return timedelta(seconds=int(round(time_dif)))
+
 
 def feed_data(x_batch, y_batch, keep_prob):
     feed_dict = {
@@ -32,6 +38,7 @@ def feed_data(x_batch, y_batch, keep_prob):
         model.keep_prob: keep_prob
     }
     return feed_dict
+
 
 def evaluate(sess, x_, y_):
     """评估在某一数据上的准确率和损失"""
@@ -47,6 +54,7 @@ def evaluate(sess, x_, y_):
         total_acc += acc * batch_len
 
     return total_loss / data_len, total_acc / data_len
+
 
 def train():
     print("Configuring TensorBoard and Saver...")
@@ -80,10 +88,10 @@ def train():
 
     print('Training and evaluating...')
     start_time = time.time()
-    total_batch = 0              # 总批次
-    best_acc_val = 0.0           # 最佳验证集准确率
-    last_improved = 0            # 记录上一次提升批次
-    require_improvement = 1000   # 如果超过1000轮未提升，提前结束训练
+    total_batch = 0  # 总批次
+    best_acc_val = 0.0  # 最佳验证集准确率
+    last_improved = 0  # 记录上一次提升批次
+    require_improvement = 1000  # 如果超过1000轮未提升，提前结束训练
 
     flag = False
     for epoch in range(config.num_epochs):
@@ -101,7 +109,7 @@ def train():
                 # 每多少轮次输出在训练集和验证集上的性能
                 feed_dict[model.keep_prob] = 1.0
                 loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-                loss_val, acc_val = evaluate(session, x_val, y_val)   # todo
+                loss_val, acc_val = evaluate(session, x_val, y_val)  # todo
 
                 if acc_val > best_acc_val:
                     # 保存最好结果
@@ -113,8 +121,8 @@ def train():
                     improved_str = ''
 
                 time_dif = get_time_dif(start_time)
-                msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%},'\
-                    + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
+                msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%},' \
+                      + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
                 print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
 
             session.run(model.optim, feed_dict=feed_dict)  # 运行优化
@@ -127,6 +135,7 @@ def train():
                 break  # 跳出循环
         if flag:  # 同上
             break
+
 
 def test():
     print("Loading test data...")
@@ -148,8 +157,8 @@ def test():
     num_batch = int((data_len - 1) / batch_size) + 1
 
     y_test_cls = np.argmax(y_test, 1)
-    y_pred_cls = np.zeros(shape=len(x_test), dtype=np.int32) # 保存预测结果
-    for i in range(num_batch):   # 逐批次处理
+    y_pred_cls = np.zeros(shape=len(x_test), dtype=np.int32)  # 保存预测结果
+    for i in range(num_batch):  # 逐批次处理
         start_id = i * batch_size
         end_id = min((i + 1) * batch_size, data_len)
         feed_dict = {
