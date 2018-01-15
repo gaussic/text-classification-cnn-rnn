@@ -84,8 +84,8 @@ def read_vocab(vocab_dir):
 
 def read_category():
     """读取分类目录，固定"""
-    categories = ['体育', '财经', '房产', '家居',
-                  '教育', '科技', '时尚', '时政', '游戏', '娱乐']
+    categories = [u'体育', u'财经', u'房产', u'家居',
+                  u'教育', u'科技', u'时尚', u'时政', u'游戏', u'娱乐']
     cat_to_id = dict(zip(categories, range(len(categories))))
 
     return categories, cat_to_id
