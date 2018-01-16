@@ -35,7 +35,7 @@ class CnnModel:
         saver.restore(sess=self.session, save_path=save_path)  # 读取保存的模型
 
     def predict(self, message):
-        # 支持不论在python2还是python3下训练的模型都可以在2后者3的环境下运行
+        # 支持不论在python2还是python3下训练的模型都可以在2或者3的环境下运行
         content = unicode(message)
         data = [self.word_to_id[x] for x in content if x in self.word_to_id]
 
