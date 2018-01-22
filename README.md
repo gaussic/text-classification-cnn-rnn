@@ -32,7 +32,7 @@ CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sent
 体育, 财经, 房产, 家居, 教育, 科技, 时尚, 时政, 游戏, 娱乐
 ```
 
-这个子集可以在此下载：链接:[http://pan.baidu.com/s/1bpq9Eub](http://pan.baidu.com/s/1bpq9Eub)  密码:ycyw
+这个子集可以在此下载：链接: https://pan.baidu.com/s/1hugrfRu 密码: qfud
 
 数据集划分如下：
 
