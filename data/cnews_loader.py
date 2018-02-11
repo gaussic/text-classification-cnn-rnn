@@ -108,7 +108,10 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
 
     # 使用keras提供的pad_sequences来将文本pad为固定长度
     x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
-    y_pad = kr.utils.to_categorical(label_id)  # 将标签转换为one-hot表示
+    cats = set([])
+    for key in cat_to_id:
+        cats.add(cat_to_id[key])
+    y_pad = kr.utils.to_categorical(label_id,num_classes=len(cats))  # 将标签转换为one-hot表示
 
     return x_pad, y_pad
 
