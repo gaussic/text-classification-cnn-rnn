@@ -7,3 +7,4 @@ cnn_keras.py
 *.pyc
 checkpoints
 tensorboard
+.vscode

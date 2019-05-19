@@ -4,7 +4,7 @@ import sys
 from collections import Counter
 
 import numpy as np
-import tensorflow.contrib.keras as kr
+import tensorflow.keras as kr
 
 if sys.version_info[0] > 2:
     is_py3 = True

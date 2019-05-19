@@ -126,6 +126,7 @@ def train():
                       + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
                 print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
 
+            feed_dict[model.keep_prob] = config.dropout_keep_prob
             session.run(model.optim, feed_dict=feed_dict)  # 运行优化
             total_batch += 1
 
